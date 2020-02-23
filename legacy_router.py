@@ -25,7 +25,9 @@ def myNetwork():
     info( '*** Starting network\n')
     net.build()
     
-    CLI(net) net.stop()
+    CLI(net) 
+    
+    net.stop()
     
 if __name__ == '__main__':
     setLogLevel( 'info' )
