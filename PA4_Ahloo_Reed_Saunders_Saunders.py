@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # File: legacy_router-modify.py
-# Austin Ah Loo
+# Austin Ah Loo, Mikie Reed, Mitchell Saunders, Nick Saunders
 from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Host, Node
@@ -34,7 +34,6 @@ class NetworkTopo( Topo ):
         router = self.addNode( 'r0', cls = NetworkRouter, ip = defaultIP )
         s1 = self.addSwitch( 's1' )
         info( '*** Add links\n')
-        #self.addLink( s1, router, intfName2b = 'r0-eth1', params2 = { 'ip' : defaultIP } )
         
         # establish link between router and switch
         self.addLink( s1, router )
@@ -49,6 +48,7 @@ class NetworkTopo( Topo ):
     
 def myNetwork():
   
+    # Set up network
     "Test network router"
     topo = NetworkTopo()
     net = Mininet( topo=topo )  
