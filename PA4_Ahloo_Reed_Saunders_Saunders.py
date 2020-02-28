@@ -1,63 +1,27 @@
-#!/usr/bin/python
-# File: legacy_router-modify.py
-# Austin Ah Loo, Mikie Reed, Mitchell Saunders, Nick Saunders
-from mininet.topo import Topo
 from mininet.net import Mininet
 from mininet.node import Host, Node
 from mininet.cli import CLI
 from mininet.log import setLogLevel, info
-
-# classes and functions structure based on 'linuxrouter.py' example
-
-class NetworkRouter( Node ):
-    "A Node with IP forwarding enabled."
-
-    def config( self, **params ):
-        super( NetworkRouter, self).config( **params )
-        # Enable forwarding on the router
-        self.cmd( 'sysctl net.ipv4.ip_forward=1' )
-
-    def terminate( self ):
-        self.cmd( 'sysctl net.ipv4.ip_forward=0' )
-        super( NetworkRouter, self ).terminate()
-        
-class NetworkTopo( Topo ):
-    "A NetworkRouter connecting one (or more) subnets"
-    
-    def build( self, **_opts ):
-	
-	defaultIP = '192.168.1.1/24'  # IP address for r0-eth1
-	
-	info( '*** Adding controller\n' )
-	info( '*** Adding switches\n')
-	# create and instantiate router with default subnet as defined
-        router = self.addNode( 'r0', cls = NetworkRouter, ip = defaultIP )
-        s1 = self.addSwitch( 's1' )
-        info( '*** Add links\n')
-        
-        # establish link between router and switch
-        self.addLink( s1, router )
-        info( '*** Add hosts\n')
-        # define two hosts on the same subnet as the router
-        h1 = self.addHost( 'h1', ip='192.168.1.101/24', defaultRoute='via 192.168.1.1' )
-        h2 = self.addHost( 'h2', ip='192.168.1.102/24', defaultRoute='via 192.168.1.1' )
-
-	for h, s in [ (h1, s1), (h2, s1) ]:
-            self.addLink( h, s )
-           
-    
 def myNetwork():
-  
-    # Set up network
-    "Test network router"
-    topo = NetworkTopo()
-    net = Mininet( topo=topo )  
-    net.start()
-    info( '*** Routing Table on Router:\n' )
-    print net[ 'r0' ].cmd( 'route' )
-    CLI( net )
+    net = Mininet( topo=None, build=False, ipBase='10.0.0.0/8')
+    info( '*** Adding controller\n' )
+    info( '*** Add switches\n')
+    r1 = net.addHost('r1', cls=Node, ip='10.0.1.1')
+    r1.cmd('sysctl -w net.ipv4.ip_forward=1')
+    info( '*** Add hosts\n')
+    #changed default routes to the specified ip on the router.
+    #was orignally defaultRoute=none
+    #adjusted IP for h1 so that it is distictly different from h2's IP
+    h2 = net.addHost('h2', cls=Host, ip='10.0.0.2', defaultRoute='via 10.0.1.1')
+    h1 = net.addHost('h1', cls=Host, ip='12.0.0.1', defaultRoute='via 12.0.1.1')
+    info( '*** Add links\n')
+    #added interfaces to the router such that each host has its own connection and addressable ips.
+    net.addLink(h2, r1, intfName2="r1-eth0", params2=dict(ip='10.0.0.1/8'))
+    net.addLink(h1, r1, intfName2="r1-eth1", params2=dict(ip='12.0.1.1/8'))
+    info( '*** Starting network\n')
+    net.build()
+    CLI(net)
     net.stop()
-
 if __name__ == '__main__':
     setLogLevel( 'info' )
     myNetwork()
